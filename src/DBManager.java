@@ -14,12 +14,12 @@ public class DBManager {
     public static void connect() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost/COMP5590?user=root&password=D211723m5");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost/account?user=root&password=D211723m5");
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT * FROM users");
+            resultSet = statement.executeQuery("SELECT * FROM user");
             
             while(resultSet.next()){
-                System.out.println(resultSet.getString(0) + " - " + resultSet.getString(1) + " - " + resultSet.getString(2));
+                System.out.println(resultSet.getString("user_id") + " - " + resultSet.getString("email") + " - " + resultSet.getString("password"));
             }
         
         } catch (Exception e) {
