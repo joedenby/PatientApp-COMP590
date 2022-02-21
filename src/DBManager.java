@@ -14,6 +14,7 @@ public class DBManager {
             System.out.println("\nConnection failed ...");
             return;
         }
+        
         System.out.println("Connected.");
         Scanner input = new Scanner(System.in);
 
