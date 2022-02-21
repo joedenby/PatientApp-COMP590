@@ -1,5 +1,7 @@
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.Scanner;
+import java.security.MessageDigest;
 
 public class DBManager {
 
@@ -7,7 +9,7 @@ public class DBManager {
     private static Statement statement;
     private static ResultSet resultSet;
 
-
+    
     public static void main(String[] args) {
         connect();
         if(!isConnected()) {
@@ -85,7 +87,7 @@ public class DBManager {
         try {
             statement = connection.createStatement();   //Start statement
             resultSet = statement.executeQuery("SELECT * FROM user where email = " + 
-                "'" + email + "'" + " and password = " + "'" + password + "'");     //Execute query
+                "'" + email + "'" + " and password = " + "'" + hashPassword(password) + "'");     //Execute query
             
             while(resultSet.next()) {   
                 //If query returns result set we know a valid combination has been found, 
@@ -101,4 +103,19 @@ public class DBManager {
         }
     } 
 
+    private static String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            digest.update(password.getBytes());
+            byte[] resultArr = digest.digest();
+            StringBuilder builder = new StringBuilder();
+            
+            for (byte b : resultArr)
+                builder.append(String.format("%02x", b));
+
+            return builder.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            return "";
+        }
+    }
 }
