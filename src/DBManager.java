@@ -1,7 +1,19 @@
-import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.Scanner;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+/**
+ * ============================================================================
+ * ================================ DBMANAGER =================================
+ * ============================================================================
+ * DBManager is responsible for all database related responsibilities. 
+ * Expected typical use case would involve checking active connection, user 
+ * registration and user login. 
+ *
+ * @author Group23a
+ * @email <jd744@kent.ac.uk> <lgb30@kent.ac.uk>
+ */
 
 public class DBManager {
 
@@ -10,6 +22,7 @@ public class DBManager {
     private static ResultSet resultSet;
 
     
+    //TODO: Remove main function, it's just a place holder for testing
     public static void main(String[] args) {
         connect();
         if(!isConnected()) {
@@ -50,8 +63,8 @@ public class DBManager {
             connection = DriverManager.getConnection("jdbc:mysql://becncqh5mhfrujm4nsgt-mysql.services.clever-cloud.com/becncqh5mhfrujm4nsgt?user=utgprzq0wm9n97xk&password=a6LBziz1kFxZ294AX63S");
             return true;    // Successfully connected.
         
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception exception) {
+            exception.printStackTrace();
             return false;   // Something went wrong.
         }
     }
@@ -103,19 +116,32 @@ public class DBManager {
         }
     } 
 
+    /**
+     * Parse given password through MD5 algorithm. Database reference of
+     * user passwords are expected to be hashed.
+     * 
+     * @param password
+     * @return hashed
+     */
     private static String hashPassword(String password) {
         try {
+            //Turn password string into parsed byte arr using MD5 
             MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(password.getBytes());
             byte[] resultArr = digest.digest();
             StringBuilder builder = new StringBuilder();
             
+            //Take each parsed byte and convert to appended characters
+            //through StringBuilder
             for (byte b : resultArr)
                 builder.append(String.format("%02x", b));
 
+            //Return final result
             return builder.toString();
         } catch (NoSuchAlgorithmException exception) {
-            return "";
+
+            //This should be impossible
+            return "problem with hashing algorithm";
         }
     }
 }
