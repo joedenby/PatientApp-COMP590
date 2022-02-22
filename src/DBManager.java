@@ -1,5 +1,5 @@
 import java.sql.*;
-import java.util.Scanner;
+import java.util.Random;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -7,45 +7,34 @@ import java.security.NoSuchAlgorithmException;
  * ============================================================================
  * ================================ DBMANAGER =================================
  * ============================================================================
- * DBManager is responsible for all database related responsibilities. 
- * Expected typical use case would involve checking active connection, user 
- * registration and user login. 
+ * DBManager is responsible for all database related responsibilities.
+ * Expected typical use case would involve checking active connection, user
+ * registration and user login.
  *
  * @author Group23a
  * @email <jd744@kent.ac.uk> <lgb30@kent.ac.uk>
  */
-
 public class DBManager {
 
     private static Connection connection;
     private static Statement statement;
     private static ResultSet resultSet;
 
-    
-    //TODO: Remove main function, it's just a place holder for testing
+    // TODO: Remove main function, it's just a place holder for testing
     public static void main(String[] args) {
         connect();
-        if(!isConnected()) {
+        if (!isConnected()) {
             System.out.println("\nConnection failed ...");
             return;
         }
-        
+
         System.out.println("Connected.");
-        Scanner input = new Scanner(System.in);
+        User john = new User("", "John", "Doe", "jd000@aol.com", null, "02073723427");
+        generateID(john);
 
-        System.out.println("\nEnter email:");
-        String email = input.nextLine();
-        System.out.println("\nEnter " + email + " password:");
-        String password = input.nextLine();
+        User x = register(john, "WatchTower1992");
 
-        User x = logIn(email, password);
-        System.out.println(x.isNull() ? "\n" + email + " loggin failed." : "\n" + email + " is logged in.");
-        input.close();
-
-        if(x.isNull()) return;
-        System.out.println("================================");
-        System.out.println(x.toString());
-        System.out.println("================================");
+        System.out.println(x.isNull() ? "User " + john.firstName + " already exists." : "Added new user " + x.firstName);
     }
 
     /**
@@ -56,33 +45,35 @@ public class DBManager {
      */
     public static boolean connect() {
         try {
-            if(connection != null && !connection.isClosed()) 
-                return true;   // Already connected.
+            if (connection != null && !connection.isClosed())
+                return true; // Already connected.
 
-            Class.forName("com.mysql.cj.jdbc.Driver");  // Grab driver and set connection.
-            connection = DriverManager.getConnection("jdbc:mysql://becncqh5mhfrujm4nsgt-mysql.services.clever-cloud.com/becncqh5mhfrujm4nsgt?user=utgprzq0wm9n97xk&password=a6LBziz1kFxZ294AX63S");
-            return true;    // Successfully connected.
-        
+            Class.forName("com.mysql.cj.jdbc.Driver"); // Grab driver and set connection.
+            connection = DriverManager.getConnection(
+                    "jdbc:mysql://becncqh5mhfrujm4nsgt-mysql.services.clever-cloud.com/becncqh5mhfrujm4nsgt?user=utgprzq0wm9n97xk&password=a6LBziz1kFxZ294AX63S");
+            return true; // Successfully connected.
+
         } catch (Exception exception) {
             exception.printStackTrace();
-            return false;   // Something went wrong.
+            return false; // Something went wrong.
         }
     }
 
     /**
-     * Returns true should both the 'connection' object is 
-     * instantiated and is open. 
+     * Returns true should both the 'connection' object is
+     * instantiated and is open.
      * 
      * @return true if connected
      */
     public static boolean isConnected() {
-        if (connection == null) return false;   // No Connection obj
-        
+        if (connection == null)
+            return false; // No Connection obj
+
         try {
-            return !connection.isClosed();  // Return if the object connection is Open.
+            return !connection.isClosed(); // Return if the object connection is Open.
         } catch (SQLException exception) {
             exception.fillInStackTrace();
-            return false;   // Something went wrong.
+            return false; // Something went wrong.
         }
     }
 
@@ -94,27 +85,51 @@ public class DBManager {
      * @param email, password
      * @return User
      */
-    public static User logIn (String email, String password) {
-        if(!isConnected()) return User.NULL;    //If not connected to DB return
+    public static User logIn(String email, String password) {
+        if (!isConnected())
+            return User.NULL; // If not connected to DB return
 
         try {
-            statement = connection.createStatement();   //Start statement
-            resultSet = statement.executeQuery("SELECT * FROM user where email = " + 
-                "'" + email + "'" + " and password = " + "'" + hashPassword(password) + "'");     //Execute query
-            
-            while(resultSet.next()) {   
-                //If query returns result set we know a valid combination has been found, 
-                //so we return it as User object.
-                return new User(resultSet.getString("user_id"), resultSet.getString("first_name"), 
-                    resultSet.getString("last_name"), resultSet.getString("email"), resultSet.getString("dob"), resultSet.getString("phone_number"));
+            statement = connection.createStatement(); // Start statement
+            resultSet = statement.executeQuery("SELECT * FROM user where email = " +
+                    "'" + email + "'" + " and password = " + "'" + hashPassword(password) + "'"); // Execute query
+
+            if (resultSet.next()) {
+                // If query returns result set we know a valid combination has been found,
+                // so we return it as User object.
+                return new User(resultSet.getString("user_id"), resultSet.getString("first_name"),
+                        resultSet.getString("last_name"), resultSet.getString("email"), resultSet.getDate("dob"),
+                        resultSet.getString("phone_number"));
             }
 
-            return User.NULL;   //No results found from query.
+            return User.NULL; // No results found from query.
         } catch (Exception e) {
             e.printStackTrace();
-            return User.NULL;   //Something went wrong, return null object.
+            return User.NULL; // Something went wrong, return null object.
         }
-    } 
+    }
+
+    public static User register(User newUser, String password) {
+        if (!isConnected())
+            return User.NULL; // If not connected to DB return
+
+        try {
+            statement = connection.createStatement(); // Start statement
+            resultSet = statement.executeQuery("SELECT * FROM user where email = " +
+                    "'" + newUser.email + "'"); // Execute query
+
+            if (resultSet.next())
+                return User.NULL;
+
+            insertUser(newUser, password);
+
+            return newUser;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return User.NULL; // Something went wrong, return null object.
+        }
+
+    }
 
     /**
      * Parse given password through MD5 algorithm. Database reference of
@@ -125,23 +140,78 @@ public class DBManager {
      */
     private static String hashPassword(String password) {
         try {
-            //Turn password string into parsed byte arr using MD5 
+            // Turn password string into parsed byte arr using MD5
             MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(password.getBytes());
             byte[] resultArr = digest.digest();
             StringBuilder builder = new StringBuilder();
-            
-            //Take each parsed byte and convert to appended characters
-            //through StringBuilder
+
+            // Take each parsed byte and convert to appended characters
+            // through StringBuilder
             for (byte b : resultArr)
                 builder.append(String.format("%02x", b));
 
-            //Return final result
+            // Return final result
             return builder.toString();
         } catch (NoSuchAlgorithmException exception) {
 
-            //This should be impossible
+            // This should be impossible
             return "problem with hashing algorithm";
         }
     }
+
+    private static boolean insertUser(User newUser, String password) {
+        try {
+            java.util.Date date = new java.util.Date();
+            java.sql.Date sqlDate = new java.sql.Date(date.getTime());
+
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO user " +
+                    "(user_id, email, password, first_name, last_name, dob, phone_number, created) VALUES " +
+                    "(?,?,?,?,?,?,?,?)");
+            
+            ps.setString(1, newUser.ID);
+            ps.setString(2, newUser.email);
+            ps.setString(3, hashPassword(password));
+            ps.setString(4, newUser.firstName);
+            ps.setString(5, newUser.lastName);
+            ps.setDate(6, sqlDate);
+            ps.setString(7, newUser.phonenumber);
+            ps.setDate(8, sqlDate);
+            ps.executeUpdate();
+            ps.close();
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static void generateID(User newUser) {
+        Random random = new Random();
+        while (newUser.ID.isBlank()) {
+            try {
+                String newID = "";
+                newID += (char) (97 + random.nextInt(25));
+                newID += DateTime.getMonth().toString().toCharArray()[0];
+                for (int i = 0; i < 4; i++)
+                    newID += random.nextInt(10);
+                newID += newUser.firstName.toCharArray()[0];
+                newID += newUser.lastName.toCharArray()[0];
+
+                statement = connection.createStatement(); // Start statement
+                resultSet = statement.executeQuery("SELECT * FROM user where user_id = " +
+                        "'" + newID + "'");
+
+                if (!resultSet.next())
+                    newUser.ID = newID;
+
+                System.out.println(newUser.toString() + "\n >>> " + newID + " <<<");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
 }

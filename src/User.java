@@ -16,17 +16,17 @@ public class User {
     
     //Representation for non-logged in user. Useful when checking if we have
     //user information to work with or not.
-    public static User NULL = new User("NULL", "NULL", "NULL", "NULL", "NULL", "NULL");
+    public static User NULL = new User("NULL", "NULL", "NULL", "NULL", null, "NULL");
     
     public String ID;
     public String firstName;
     public String lastName;
     public String email;
-    public String dateofbirth;
+    public java.sql.Date dateofbirth;
     public String phonenumber;
 
     
-    public User(String ID, String firstName, String lastName, String email, String dateofbith, String phonenumber) {
+    public User(String ID, String firstName, String lastName, String email, java.sql.Date dateofbith, String phonenumber) {
         this.ID = ID;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -58,7 +58,7 @@ public class User {
         return 
             "ID: " + ID +
             "\nName: " + firstName + " " + lastName + 
-            "\nDateOfBirth: " + dateofbirth + 
+            "\nDateOfBirth: ??"  + 
             "\nemail: " + email +
             "\nPhone:" + phonenumber; 
     }
