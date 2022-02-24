@@ -116,7 +116,7 @@ public class DBManager {
         //Tests that a invalid email and password will return a null user
         assertEquals(User.NULL, logIn("Fakeemail@kent.ac.uk","Fakepassword123"));
         //Tests that a valid email and password returns a User
-        User testuser = new User("A70273XF","John","Johnson","jj@kent.ac.uk","01-01-2001","07836333321");
+        User testuser = new User("A70273XF","John","Johnson","jj@kent.ac.uk","null","07836333321");
         assertEquals(testuser,logIn("jj@kent.ac.uk","password"));
        
     }
@@ -144,7 +144,7 @@ public class DBManager {
     @Test
     public void testRegister(){
     //test that a already existing user cannot be registered
-    User testuser2 = new User("B40212FG","Kane","Kay","kk@kent.ac.uk","07-12-1994","07836333322");
+    User testuser2 = new User("B40212FG","Kane","Kay","kk@kent.ac.uk","null","07836333322");
     assertEquals(User.null,register(testuser,"testpassword123"));
     //test that registering a new user creates a new User
     assertEquals(newuser,register("newuser1","newuser1password"))
